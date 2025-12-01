@@ -220,20 +220,41 @@ class Query:
         self._random = random
         return self
 
+    def schema(self):
+        """
+        Get the schema (available fields) for the tool.
+        
+        Returns:
+            list: Sorted list of available fields.
+        """
+        if not self._valid_fields:
+            # Try to fetch if empty (though init should have handled it)
+            self._valid_fields = self._fetch_valid_fields()
+            
+        return sorted(list(self._valid_fields))
+
     def execute(self):
         """
         Execute the search query.
-        
+
         Returns:
             dict: Search results.
-            
+
         Raises:
-            ValueError: If no filters have been added to the query.
+            ValueError: If no filters or no select fields have been added to the query.
         """
         if not self._filters:
             raise ValueError(
                 "At least one filter is required. The API requires at least one filter condition. "
                 "Use .filter(field, operation, value) to add a filter before calling execute()."
+            )
+
+        if not self._results_fields:
+            raise ValueError(
+                f"At least one result field must be selected. The API requires you to specify which fields to return. "
+                f"Use .select(field1, field2, ...) to specify fields before calling execute().\n\n"
+                f"Available fields for tool '{self.tool}':\n"
+                f"{chr(10).join('  - ' + f for f in sorted(self._valid_fields))}"
             )
         
         return self.library.search(
@@ -253,20 +274,28 @@ class Query:
     def paginate(self, per_page=50):
         """
         Iterate over all results using pagination.
-        
+
         Args:
             per_page (int): Number of results per page.
-            
+
         Yields:
             dict: Individual result items.
-            
+
         Raises:
-            ValueError: If no filters have been added to the query.
+            ValueError: If no filters or no select fields have been added to the query.
         """
         if not self._filters:
             raise ValueError(
                 "At least one filter is required. The API requires at least one filter condition. "
                 "Use .filter(field, operation, value) to add a filter before calling paginate()."
+            )
+
+        if not self._results_fields:
+            raise ValueError(
+                f"At least one result field must be selected. The API requires you to specify which fields to return. "
+                f"Use .select(field1, field2, ...) to specify fields before calling paginate().\n\n"
+                f"Available fields for tool '{self.tool}':\n"
+                f"{chr(10).join('  - ' + f for f in sorted(self._valid_fields))}"
             )
         
         current_offset = self._offset

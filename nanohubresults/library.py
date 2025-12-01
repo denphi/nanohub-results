@@ -146,8 +146,6 @@ class Results:
             data["revision"] = revision
         if not valid_runs:
             data["valid_runs"] = "false"
-        if not valid_runs:
-            data["valid_runs"] = "false"
         if simtool:
             data["simtool"] = 1
         if sort:
