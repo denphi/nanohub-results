@@ -10,10 +10,12 @@ auth_data = {
 session = Session(auth_data, url="https://nanohub.org/api")
 results = Results(session)
 
-# First, let's get a real SQUID from the pntoy simulation tool
-print("Fetching a sample result from pntoy (simulation tool)...")
-query = results.query("pntoy", simtool=True) \
+# First, let's get a real SQUID from the st4pnjunction simulation tool
+print("Fetching a sample result from st4pnjunction (simulation tool)...")
+query = results.query("st4pnjunction", simtool=True) \
+    .filter("output.IV Characteristic", ">", 0) \
     .limit(1)
+
 
 response = query.execute()
 

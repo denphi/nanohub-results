@@ -86,6 +86,9 @@ class Results:
         data = {
             "tool": tool
         }
+        if simtool:
+            data["simtool"] = 1
+            
         url = f"{self.base_api}/dbexplorer/tool_detail"
         return self.session.requestPost(url, data=data).json()
 
@@ -143,8 +146,10 @@ class Results:
             data["revision"] = revision
         if not valid_runs:
             data["valid_runs"] = "false"
+        if not valid_runs:
+            data["valid_runs"] = "false"
         if simtool:
-            data["simtool"] = "true"
+            data["simtool"] = 1
         if sort:
             data["sort"] = sort
             data["sort_asc"] = "true" if sort_asc else "false"
@@ -176,9 +181,10 @@ class Results:
             "results": json.dumps(results_fields),
             "limit": limit,
             "revision": revision,
-            "valid_runs": "true" if valid_runs else "false",
-            "simtool": "true" if simtool else "false"
+            "valid_runs": "true" if valid_runs else "false"
         }
+        if simtool:
+            data["simtool"] = 1
         url = f"{self.base_api}/dbexplorer/stats"
         return self.session.requestPost(url, data=data).json()
 
@@ -192,9 +198,9 @@ class Results:
         Returns:
             dict: Record counts and stats.
         """
-        params = {
-            "simtool": "true" if simtool else "false"
-        }
+        params = {}
+        if simtool:
+            params["simtool"] = 1
         url = f"{self.base_api}/dbexplorer/records?{urlencode(params)}"
         return self.session.requestGet(url).json()
 
@@ -211,9 +217,10 @@ class Results:
             dict: API response containing list of files with id, name, and size.
         """
         data = {
-            "squid": squid,
-            "simtool": "true" if simtool else "false"
+            "squid": squid
         }
+        if simtool:
+            data["simtool"] = 1
         url = f"{self.base_api}/dbexplorer/squid_files"
         return self.session.requestPost(url, data=data).json()
 
@@ -235,9 +242,10 @@ class Results:
         params = {
             "tool": tool,
             "squid": squid,
-            "complete": "true" if complete else "false",
-            "simtool": "true" if simtool else "false"
+            "complete": "true" if complete else "false"
         }
+        if simtool:
+            params["simtool"] = 1
         if field:
             params["field"] = field
         if file_name:

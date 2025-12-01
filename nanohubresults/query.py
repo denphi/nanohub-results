@@ -54,18 +54,35 @@ class Query:
         self._valid_fields = self._fetch_valid_fields()
 
     def _fetch_valid_fields(self):
-        """Fetch valid input/output fields for the tool."""
+        """
+        Fetch valid input/output fields for the tool.
+        
+        Returns:
+            set: Set of valid field names (e.g., 'input.field1', 'output.result1')
+            
+        Raises:
+            ValueError: If tool schema cannot be fetched or tool doesn't exist
+        """
         try:
             response = self.library.get_tool_detail(self.tool, simtool=self._simtool)
-            if not response.get('success') or not response.get('results'):
-                # Fallback or warning if tool not found, but for now let's return empty set 
-                # or allow all if we can't validate. 
-                # User requested validation, so raising error might be better if tool not found.
-                return set()
+            
+            if not response.get('success'):
+                raise ValueError(
+                    f"Failed to fetch schema for tool '{self.tool}'. "
+                    f"Please verify the tool name is correct and try again."
+                )
+            
+            if not response.get('results'):
+                raise ValueError(
+                    f"Tool '{self.tool}' not found or has no schema. "
+                    f"Please verify the tool name and simtool parameter."
+                )
             
             tool_data = response['results'][0].get(self.tool)
             if not tool_data:
-                return set()
+                raise ValueError(
+                    f"Tool '{self.tool}' schema is empty or malformed."
+                )
                 
             inputs = tool_data.get('input', {}).keys()
             outputs = tool_data.get('output', {}).keys()
@@ -75,16 +92,28 @@ class Query:
                 valid_fields.add(f"input.{k}")
             for k in outputs:
                 valid_fields.add(f"output.{k}")
+            
+            if not valid_fields:
+                raise ValueError(
+                    f"Tool '{self.tool}' has no input or output fields defined."
+                )
                 
             return valid_fields
-        except Exception:
-            # If API call fails, we might want to warn or allow all.
-            # For strict validation as requested, we should probably fail or log.
-            # But to avoid breaking if offline/mocking isn't perfect in all envs, 
-            # maybe we should allow if we can't fetch? 
-            # The prompt says "I want filter and select to validate".
-            # So I will assume strict validation.
-            return set()
+            
+        except KeyError as e:
+            raise ValueError(
+                f"Error parsing schema for tool '{self.tool}': {str(e)}"
+            )
+        except Exception as e:
+            # If it's already a ValueError we raised, re-raise it
+            if isinstance(e, ValueError):
+                raise
+            # For other exceptions (network errors, etc.), provide helpful message
+            raise ValueError(
+                f"Unable to fetch schema for tool '{self.tool}': {str(e)}. "
+                f"Please check your connection and tool name."
+            )
+
 
     def filter(self, field, op, value):
         """
@@ -103,19 +132,14 @@ class Query:
         """
         if op not in self.VALID_OPERATIONS:
             raise ValueError(f"Invalid operation '{op}'. Valid operations are: {self.VALID_OPERATIONS}")
-            
-        if self._valid_fields and field not in self._valid_fields:
-             # Only validate if we successfully fetched fields. 
-             # If _valid_fields is empty, it might mean tool not found or API error.
-             # But if tool has no fields, it's also empty.
-             # Let's assume if we have a tool, we have fields.
-             # If _valid_fields is empty, maybe we should warn?
-             # For now, I'll raise error if I have fields and it's not in them.
-             # If I have NO fields, it's suspicious.
-             pass
         
-        if self._valid_fields and field not in self._valid_fields:
-             raise ValueError(f"Invalid field '{field}'. Available fields: {sorted(list(self._valid_fields))}")
+        # Validate field against tool schema (_valid_fields is always populated)
+        if field not in self._valid_fields:
+            raise ValueError(
+                f"Invalid field '{field}' for tool '{self.tool}'. "
+                f"Available fields: {sorted(list(self._valid_fields))}"
+            )
+
 
         self._filters.append({
             "field": field,
@@ -138,9 +162,13 @@ class Query:
             ValueError: If any field is invalid.
         """
         for field in fields:
-            if self._valid_fields and field not in self._valid_fields:
-                raise ValueError(f"Invalid field '{field}'. Available fields: {sorted(list(self._valid_fields))}")
-                
+            # Validate field against tool schema (_valid_fields is always populated)
+            if field not in self._valid_fields:
+                raise ValueError(
+                    f"Invalid field '{field}' for tool '{self.tool}'. "
+                    f"Available fields: {sorted(list(self._valid_fields))}"
+                )
+
         self._results_fields.extend(fields)
         return self
 
@@ -176,9 +204,13 @@ class Query:
 
     def sort(self, field, asc=True):
         """Set the sort order."""
-        if self._valid_fields and field not in self._valid_fields:
-             raise ValueError(f"Invalid sort field '{field}'.")
-             
+        # Validate field against tool schema (_valid_fields is always populated)
+        if field not in self._valid_fields:
+            raise ValueError(
+                f"Invalid sort field '{field}' for tool '{self.tool}'. "
+                f"Available fields: {sorted(list(self._valid_fields))}"
+            )
+
         self._sort = field
         self._sort_asc = asc
         return self
@@ -194,7 +226,16 @@ class Query:
         
         Returns:
             dict: Search results.
+            
+        Raises:
+            ValueError: If no filters have been added to the query.
         """
+        if not self._filters:
+            raise ValueError(
+                "At least one filter is required. The API requires at least one filter condition. "
+                "Use .filter(field, operation, value) to add a filter before calling execute()."
+            )
+        
         return self.library.search(
             tool=self.tool,
             filters=self._filters,
@@ -218,7 +259,16 @@ class Query:
             
         Yields:
             dict: Individual result items.
+            
+        Raises:
+            ValueError: If no filters have been added to the query.
         """
+        if not self._filters:
+            raise ValueError(
+                "At least one filter is required. The API requires at least one filter condition. "
+                "Use .filter(field, operation, value) to add a filter before calling paginate()."
+            )
+        
         current_offset = self._offset
         # We don't want to modify the builder's state permanently, 
         # but we need to iterate.
