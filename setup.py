@@ -24,14 +24,20 @@
 #  Daniel Mejia (denphi), Purdue University (denphi@denphi.com)
 
 from setuptools import setup, find_packages
+import os
 
 # Read the README file for long description
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+# Read version from __version__.py
+version = {}
+with open(os.path.join("nanohubresults", "__version__.py"), "r", encoding="utf-8") as fh:
+    exec(fh.read(), version)
+
 setup(
     name='nanohub-results',
-    version='1.0.0',
+    version=version['__version__'],
     description='Python library to interact with NanoHUB Results API',
     long_description=long_description,
     long_description_content_type='text/markdown',

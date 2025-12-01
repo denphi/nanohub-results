@@ -23,20 +23,8 @@
 #  Authors:
 #  Daniel Mejia (denphi), Purdue University (denphi@denphi.com)
 
-"""
-nanohub-results: Python library to interact with NanoHUB Results API
-
-This library provides a Pythonic interface for searching, filtering, and
-downloading simulation results from NanoHUB tools.
-"""
-
-from .library import Results
-from .__version__ import (
-    __version__,
-    __author__,
-    __email__,
-    __license__,
-    __copyright__
-)
-
-__all__ = ['Results', '__version__']
+__version__ = "1.0.0"
+__author__ = "Daniel Mejia (denphi)"
+__email__ = "denphi@denphi.com"
+__license__ = "MIT"
+__copyright__ = "Copyright 2025 HUBzero Foundation, LLC"

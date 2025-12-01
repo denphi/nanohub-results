@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nanohub-results"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Python library to interact with NanoHUB Results API"
 readme = "README.md"
 requires-python = ">=3.7"
 license = {text = "MIT"}
+license-files = ["LICENSE"]
 authors = [
-    {name = "NanoHUB", email = "support@nanohub.org"}
+    {name = "Daniel Mejia", email = "denphi@denphi.com"}
 ]
 keywords = ["nanohub", "simulation", "results", "api", "rappture", "sim2l"]
 classifiers = [
@@ -56,3 +57,6 @@ Documentation = "https://github.com/denphi/nanohub-results#readme"
 where = ["."]
 include = ["nanohubresults*"]
 exclude = ["tests*", "examples*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "nanohubresults.__version__.__version__"}
