@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nanohub-results"
+version = "1.0.0"
+description = "Python library to interact with NanoHUB Results API"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+    {name = "NanoHUB", email = "support@nanohub.org"}
+]
+keywords = ["nanohub", "simulation", "results", "api", "rappture", "sim2l"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "nanohub-remote>=1.0.0",
+    "requests>=2.20.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/denphi/nanohub-results"
+Repository = "https://github.com/denphi/nanohub-results"
+Documentation = "https://github.com/denphi/nanohub-results#readme"
+"Bug Tracker" = "https://github.com/denphi/nanohub-results/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nanohubresults*"]
+exclude = ["tests*", "examples*"]
